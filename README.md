@@ -43,7 +43,9 @@ Animated all-in-one heating schematic card for Home Assistant: boiler, heating c
 
 ## Configuration
 
-The card has a **visual editor**: add it via *Add card → Buderus Heat Card* and pick the entities per section (boiler & burner, heating circuit, hot water, solar thermal, heating element), set the title, solar visibility and animation, and optionally override the labels. Everything can also be configured in YAML:
+The card has a **visual editor**: add it via *Add card → Buderus Heat Card* and pick the entities per section (boiler & burner, heating circuit, hot water, solar thermal, heating element), set the title, solar visibility and animation, and optionally override the labels (each label field shows its default text). The editor is shown in German or English depending on your Home Assistant language. It writes compact YAML: empty entities and labels are left out, and keys the editor doesn't expose are kept.
+
+Everything can also be configured in YAML:
 
 ```yaml
 type: custom:buderus-heat-card
@@ -75,7 +77,7 @@ The entity IDs above are the EMS-ESP defaults (boiler, RC30/RC35 thermostat, SM1
 |---|---|---|
 | `title` | `Heizungsanlage` | Card title; set to `""` to hide the header |
 | `animation` | `true` | Animated pipe flow |
-| `solar` | auto | Show the solar thermal part. Auto = shown when a solar entity is set; `false` hides it |
+| `solar` | auto | Show the solar thermal part. Omitted (auto) = shown when a solar entity is set; `true` = always shown; `false` = hidden |
 | `entities` | – | Entity mapping, see below |
 | `labels` | – | Override value labels, e.g. `labels: { tank_top: "WW oben" }` |
 
@@ -117,4 +119,4 @@ The heating element is shown as active when `heater` is on, or – if only `heat
 
 ## Deutsch
 
-Animierte Home-Assistant-Karte mit dem Gesamtschema der Heizungsanlage: Kessel, Heizkreis, Warmwasserspeicher und Solarthermie in einer Ansicht. Gedacht für Buderus/Bosch-Anlagen über EMS-ESP. Die Karte lässt sich komplett über den visuellen Editor einrichten. Die Karte ist eine reine Anzeige: Antippen öffnet nur das Info-Fenster, es werden keine Dienste aufgerufen.
+Animierte Home-Assistant-Karte mit dem Gesamtschema der Heizungsanlage: Kessel, Heizkreis, Warmwasserspeicher und Solarthermie in einer Ansicht. Gedacht für Buderus/Bosch-Anlagen über EMS-ESP. Die Karte lässt sich komplett über den visuellen Editor einrichten (Entitäten nach Bereichen, Titel, Solarthermie automatisch/immer/aus, Animation, eigene Beschriftungen); die Editor-Oberfläche ist auf Deutsch, bei anderer HA-Sprache auf Englisch. Die Karte ist eine reine Anzeige: Antippen öffnet nur das Info-Fenster, es werden keine Dienste aufgerufen.
