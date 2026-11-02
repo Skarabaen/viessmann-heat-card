@@ -30,13 +30,21 @@ Animated all-in-one heating schematic card for Home Assistant: boiler, heating c
 
 ## Installation
 
-### HACS (custom repository)
+### HACS (recommended)
+
+Installing via [HACS](https://hacs.xyz) is the recommended way: you get update notifications and the dashboard resource is registered automatically.
+
+[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=pasimatics&repository=buderus-heat-card&category=plugin)
+
+Click the button above, or add it manually:
 
 1. Open **HACS** → three-dot menu → **Custom repositories**
 2. Add `https://github.com/pasimatics/buderus-heat-card` with category **Dashboard**
 3. Install **Buderus Heat Card** and reload the browser
 
 ### Manual
+
+Only if you don't use HACS:
 
 1. Copy `dist/buderus-heat-card.js` to `/config/www/buderus-heat-card/`
 2. Add the resource `/local/buderus-heat-card/buderus-heat-card.js` (type: JavaScript module)
@@ -119,4 +127,4 @@ The heating element is shown as active when `heater` is on, or – if only `heat
 
 ## Deutsch
 
-Animierte Home-Assistant-Karte mit dem Gesamtschema der Heizungsanlage: Kessel, Heizkreis, Warmwasserspeicher und Solarthermie in einer Ansicht. Gedacht für Buderus/Bosch-Anlagen über EMS-ESP. Die Karte lässt sich komplett über den visuellen Editor einrichten (Entitäten nach Bereichen, Titel, Solarthermie automatisch/immer/aus, Animation, eigene Beschriftungen); die Editor-Oberfläche ist auf Deutsch, bei anderer HA-Sprache auf Englisch. Die Karte ist eine reine Anzeige: Antippen öffnet nur das Info-Fenster, es werden keine Dienste aufgerufen.
+Animierte Home-Assistant-Karte mit dem Gesamtschema der Heizungsanlage: Kessel, Heizkreis, Warmwasserspeicher und Solarthermie in einer Ansicht. Gedacht für Buderus/Bosch-Anlagen über EMS-ESP. Die Karte lässt sich komplett über den visuellen Editor einrichten (Entitäten nach Bereichen, Titel, Solarthermie automatisch/immer/aus, Animation, eigene Beschriftungen); die Editor-Oberfläche ist auf Deutsch, bei anderer HA-Sprache auf Englisch. Empfohlene Installation über HACS (siehe oben). Die Karte ist eine reine Anzeige: Antippen öffnet nur das Info-Fenster, es werden keine Dienste aufgerufen.
