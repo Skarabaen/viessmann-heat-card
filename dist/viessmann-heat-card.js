@@ -46,7 +46,7 @@ class BuderusHeatCard extends HTMLElement {
   }
 
   static getConfigElement() {
-    return document.createElement("buderus-heat-card-editor");
+    return document.createElement("viessmann-heat-card-editor");
   }
 
   static getStubConfig() {
@@ -595,14 +595,14 @@ class BuderusHeatCardEditor extends HTMLElement {
   }
 }
 
-if (!customElements.get("buderus-heat-card-editor")) customElements.define("buderus-heat-card-editor", BuderusHeatCardEditor);
+if (!customElements.get("viessmann-heat-card-editor")) customElements.define("viessmann-heat-card-editor", BuderusHeatCardEditor);
 
-if (!customElements.get("buderus-heat-card")) customElements.define("buderus-heat-card", BuderusHeatCard);
+if (!customElements.get("viessmann-heat-card")) customElements.define("viessmann-heat-card", BuderusHeatCard);
 window.customCards = window.customCards || [];
-if (!window.customCards.some((c) => c.type === "buderus-heat-card")) {
+if (!window.customCards.some((c) => c.type === "viessmann-heat-card")) {
   window.customCards.push({
-    type: "buderus-heat-card",
-    name: "Buderus Heat Card",
+    type: "viessmann-heat-card",
+    name: "Viessmann Heat Card",
     description: "Kombiniertes Anlagenschema: Kessel, Heizkreis, Speicher und Solarthermie (nur Anzeige).",
     preview: true,
   });

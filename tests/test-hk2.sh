@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-CARD="dist/buderus-heat-card.js"
+CARD="dist/viessmann-heat-card.js"
 
 grep -q 'flow_2:' "$CARD"
 grep -q 'return_2:' "$CARD"
