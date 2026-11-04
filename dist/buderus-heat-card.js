@@ -11,14 +11,17 @@ const BHC_DEFAULT_ENTITIES = {
   burner_power: "",
   flow: "",
   flow_target: "",
+  return: "",
   heating_pump: "",
   heating_pump_mod: "",
   dhw_charging: "",
   charge_pump: "",
   tank_top: "",
+  tank_middle: "",
   tank_bottom: "",
   dhw_target: "",
-  collector: "",
+  collector_to: "",
+  collector_from: "",
   solar_pump: "",
   solar_pump_mod: "",
   mode: "",
@@ -118,7 +121,7 @@ class BuderusHeatCard extends HTMLElement {
     if (this._config.solar === false) return false;
     if (this._config.solar === true) return true;
     const e = this._config.entities;
-    return Boolean(e.collector || e.solar_pump || e.solar_pump_mod);
+    return Boolean(e.collector_to || e.collector_from || e.solar_pump || e.solar_pump_mod);
   }
   _hasHeater() {
     const e = this._config.entities;
@@ -210,7 +213,7 @@ class BuderusHeatCard extends HTMLElement {
     const modeSt = this._st("mode");
     const modeTxt = modeSt ? BHC_MODE_LABELS[modeSt.state] || modeSt.state : "";
 
-    return `<svg viewBox="0 0 1000 680" xmlns="http://www.w3.org/2000/svg">
+    return `<svg viewBox="0 0 1000 700" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="bhcTank" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="${this._color(top)}" stop-opacity=".85"/>
@@ -236,8 +239,8 @@ class BuderusHeatCard extends HTMLElement {
       ${this._pipe("M 235 400 H 320 V 540 H 760 V 400 H 790", true, heatPump)}
       ${this._pipe("M 950 470 H 970 V 575 H 290 V 440 H 235", false, heatPump)}
       <!-- 2026.11.04 Verbesserung: HK2 Fußbodenheizung -->
-      ${this._pipe("M 235 420 H 350 V 590 H 760 V 520 H 790", true, heatPump2)}
-      ${this._pipe("M 950 590 H 970 V 620 H 330 V 460 H 235", false, heatPump2)}
+      ${this._pipe("M 150 480 V 510", true, heatPump2)}
+      ${this._pipe("M 190 510 V 480", false, heatPump2)}
       <!-- Sonne + Kollektor -->
       ${showSolar ? `<g transform="translate(905,40)" class="${solarActive ? "sun-on" : "sun"}">
         <circle r="18" fill="#f59e0b"/>
@@ -246,7 +249,7 @@ class BuderusHeatCard extends HTMLElement {
           <line x1="-20" y1="-20" x2="-29" y2="-29"/><line x1="20" y1="20" x2="29" y2="29"/><line x1="-20" y1="20" x2="-29" y2="29"/><line x1="20" y1="-20" x2="29" y2="-29"/>
         </g>
       </g>
-      <g class="${e.collector ? "click" : ""}" data-entity="${bhcEsc(e.collector)}">
+      <g class="${e.collector_from ? "click" : ""}" data-entity="${bhcEsc(e.collector_from)}">
         <polygon points="760,80 880,80 905,180 735,180" fill="url(#bhcSolar)" stroke="#475569" stroke-width="4" transform="translate(0,-10)"/>
         <g stroke="#8fb7ff" stroke-width="2.5" opacity=".85" transform="translate(0,-10)">
           <line x1="800" y1="82" x2="785" y2="178"/><line x1="840" y1="82" x2="835" y2="178"/>
@@ -282,11 +285,11 @@ class BuderusHeatCard extends HTMLElement {
       </g>
       <!-- 2026.11.04 Verbesserung: HK2 Fußbodenheizung -->
       <g class="${e.flow_2 ? "click" : ""}" data-entity="${bhcEsc(e.flow_2)}">
-        <rect x="790" y="510" width="160" height="90" rx="12"
+        <rect x="75" y="510" width="150" height="90" rx="12"
               fill="url(#bhcMetal)"
               stroke="var(--bhc-stroke)"
               stroke-width="4"/>
-        <path d="M810 535 H930 V550 H810 V565 H930 V580 H810"
+        <path d="M95 535 H205 V550 H95 V565 H205 V580 H95"
               fill="none"
               stroke="${heatPump2 ? "#fecaca" : "var(--bhc-fin)"}"
               stroke-width="8"
@@ -296,7 +299,7 @@ class BuderusHeatCard extends HTMLElement {
       <!-- Pumpen -->
       ${this._pump(330, 220, "charge_pump", chargeActive, 0)}
       ${this._pump(620, 540, "heating_pump", heatPump, 0)}
-      ${this._pump(620, 590, "heating_pump_2", heatPump2, 0)}
+      ${this._pump(150, 495, "heating_pump_2", heatPump2, 90)}
       ${showSolar ? this._pump(700, 300, "solar_pump", solarActive, -90) : ""}
 
       <!-- Werte -->
@@ -305,18 +308,20 @@ class BuderusHeatCard extends HTMLElement {
       ${this._pill(150, 530, "burner_power", this._label("burner", "Brenner"), burner ? `an · ${this._pct("burner_power") || ""}` : "aus", { active: burner, color: burner ? "#ea580c" : "var(--bhc-muted)" })}
       ${this._pill(330, 155, "charge_pump", this._label("charge", "WW-Ladung"), chargeActive ? "aktiv" : "aus", { active: chargeActive, color: chargeActive ? "#16a34a" : "var(--bhc-muted)" })}
       ${this._pill(500, 62, "tank_top", this._label("tank_top", "Speicher oben"), this._temp("tank_top"), { w: 140, color: this._color(top) })}
+      ${this._pill(500, 300, "tank_middle", this._label("tank_middle", "Speicher Mitte"), this._temp("tank_middle"), { w: 140, color: this._color(this._num("tank_middle")) })}
       ${this._pill(500, 507, "tank_bottom", this._label("tank_bottom", "Speicher unten"), this._temp("tank_bottom"), { w: 140, color: this._color(bottom) })}
-      ${showSolar ? this._pill(820, 215, "collector", this._label("collector", "Kollektor"), this._temp("collector"), { color: this._color(this._num("collector")) }) : ""}
+      ${showSolar ? this._pill(820, 215, "collector_from", this._label("collector_from", "Vom Kollektor"), this._temp("collector_from"), { w: 140, color: this._color(this._num("collector_from")) }) : ""}
+      ${showSolar ? this._pill(820, 270, "collector_to", this._label("collector_to", "Zum Kollektor"), this._temp("collector_to"), { w: 140, color: this._color(this._num("collector_to")) }) : ""}
       ${showSolar ? this._pill(790, 268, "solar_pump_mod", this._label("solar_pump", "Solarpumpe"), solarActive ? `an · ${this._pct("solar_pump_mod")}` : "aus", { w: 120, active: solarActive, color: solarActive ? "#16a34a" : "var(--bhc-muted)" }) : ""}
-      ${circuitIdle
-        ? this._pill(870, 330, "flow", this._label("circuit", "Heizkreis"), chargeActive ? "WW-Vorrang" : "aus", { w: 150, color: "var(--bhc-muted)" })
-        : this._pill(870, 330, "flow", this._label("flow", "Vorlauf"), `${this._temp("flow")}${this._num("flow_target") !== null ? ` / ${Math.round(this._num("flow_target"))}°` : ""}`, { w: 150, color: this._color(this._num("flow")) })}
+      ${this._pill(870, 330, "flow", this._label("flow", "HK1 Vorlauf"), this._temp("flow"), { w: 150, color: this._color(this._num("flow")) })}
       ${this._pill(620, 615, "heating_pump_mod", this._label("heating_pump", "Heizkreispumpe"), heatPump ? `an · ${this._pct("heating_pump_mod")}` : "aus", { w: 140, active: heatPump, color: heatPump ? "#16a34a" : "var(--bhc-muted)" })}
       ${showHeater ? this._pill(352, 338, this._config.entities.heater ? "heater" : "heater_power", this._label("heater", "Heizstab"), heaterOn ? `an${this._power("heater_power") ? " · " + this._power("heater_power") : ""}` : "aus", { w: 128, active: heaterOn, color: heaterOn ? "#ea580c" : "var(--bhc-muted)" }) : ""}
+      ${this._pill(870, 525, "return", this._label("return", "HK1 Rücklauf"), this._temp("return"), { w: 150, color: this._color(this._num("return")) })}
+      ${this._pill(105, 660, "flow_2", this._label("flow_2", "HK2 Vorlauf"), this._temp("flow_2"), { w: 170, color: this._color(this._num("flow_2")) })}
 
-      ${circuitIdle2 ? this._pill(870, 505, "flow_2", this._label("circuit_2", "HK2 Fußbodenheizung"), "aus", { w: 170, color: "var(--bhc-muted)" })  : this._pill(870, 505, "flow_2", this._label("flow_2", "HK2 Vorlauf"), this._temp("flow_2"), { w: 170, color: this._color(this._num("flow_2")) })}
-      ${this._pill(870, 625, "return_2", this._label("return_2", "HK2 Rücklauf"), this._temp("return_2"), { w: 170, color: this._color(this._num("return_2")) })}
-      ${this._pill(620, 625, "heating_pump_2", this._label("heating_pump_2", "Pumpe HK2"), heatPump2 ? "an" : "aus", { w: 140, active: heatPump2, color: heatPump2 ? "#16a34a" : "var(--bhc-muted)" })}
+      ${this._pill(285, 660, "return_2", this._label("return_2", "HK2 Rücklauf"), this._temp("return_2"), { w: 170, color: this._color(this._num("return_2")) })}
+
+      ${this._pill(150, 555, "heating_pump_2", this._label("heating_pump_2", "Pumpe HK2"), heatPump2 ? "an" : "aus", { w: 140, active: heatPump2, color: heatPump2 ? "#16a34a" : "var(--bhc-muted)" })}
 
     </svg>`;
   }
