@@ -24,6 +24,9 @@ const BHC_DEFAULT_ENTITIES = {
   mode: "",
   heater: "",
   heater_power: "",
+  flow_2: "",
+  return_2: "",
+  heating_pump_2: "",
 };
 
 const BHC_MODE_LABELS = { day: "Tag", night: "Nacht", nofrost: "Frostschutz", eco: "Eco", comfort: "Komfort" };
@@ -186,12 +189,14 @@ class BuderusHeatCard extends HTMLElement {
     const e = this._config.entities;
     const burner = this._on("burner");
     const heatPump = this._on("heating_pump");
+    const heatPump2 = this._on("heating_pump_2");
     const chargeActive = this._on("charge_pump") || this._on("dhw_charging");
     const showSolar = this._hasSolar();
     const solarActive = showSolar && this._on("solar_pump");
     const showHeater = this._hasHeater();
     // Ohne laufende Heizkreispumpe zeigt der Kesselvorlauf nicht die Heizkreis-Temperatur (z. B. bei WW-Vorrang)
     const circuitIdle = Boolean(e.heating_pump) && !heatPump;
+    const circuitIdle2 = Boolean(e.heating_pump_2) && !heatPump2;
     const heaterOn = showHeater && this._heaterOn();
     const top = this._num("tank_top");
     const bottom = this._num("tank_bottom");
@@ -205,7 +210,7 @@ class BuderusHeatCard extends HTMLElement {
     const modeSt = this._st("mode");
     const modeTxt = modeSt ? BHC_MODE_LABELS[modeSt.state] || modeSt.state : "";
 
-    return `<svg viewBox="0 0 1000 645" xmlns="http://www.w3.org/2000/svg">
+    return `<svg viewBox="0 0 1000 680" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="bhcTank" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="${this._color(top)}" stop-opacity=".85"/>
@@ -230,7 +235,9 @@ class BuderusHeatCard extends HTMLElement {
       <!-- Heizkreis: Kessel -> Heizkörper -->
       ${this._pipe("M 235 400 H 320 V 540 H 760 V 400 H 790", true, heatPump)}
       ${this._pipe("M 950 470 H 970 V 575 H 290 V 440 H 235", false, heatPump)}
-
+      <!-- 2026.11.04 Verbesserung: HK2 Fußbodenheizung -->
+      ${this._pipe("M 235 420 H 350 V 590 H 760 V 520 H 790", true, heatPump2)}
+      ${this._pipe("M 950 590 H 970 V 620 H 330 V 460 H 235", false, heatPump2)}
       <!-- Sonne + Kollektor -->
       ${showSolar ? `<g transform="translate(905,40)" class="${solarActive ? "sun-on" : "sun"}">
         <circle r="18" fill="#f59e0b"/>
@@ -273,10 +280,23 @@ class BuderusHeatCard extends HTMLElement {
           <rect x="920" y="378" width="16" height="94" rx="7"/>
         </g>
       </g>
-
+      <!-- 2026.11.04 Verbesserung: HK2 Fußbodenheizung -->
+      <g class="${e.flow_2 ? "click" : ""}" data-entity="${bhcEsc(e.flow_2)}">
+        <rect x="790" y="510" width="160" height="90" rx="12"
+              fill="url(#bhcMetal)"
+              stroke="var(--bhc-stroke)"
+              stroke-width="4"/>
+        <path d="M810 535 H930 V550 H810 V565 H930 V580 H810"
+              fill="none"
+              stroke="${heatPump2 ? "#fecaca" : "var(--bhc-fin)"}"
+              stroke-width="8"
+              stroke-linecap="round"
+              stroke-linejoin="round"/>
+      </g>	
       <!-- Pumpen -->
       ${this._pump(330, 220, "charge_pump", chargeActive, 0)}
       ${this._pump(620, 540, "heating_pump", heatPump, 0)}
+      ${this._pump(620, 590, "heating_pump_2", heatPump2, 0)}
       ${showSolar ? this._pump(700, 300, "solar_pump", solarActive, -90) : ""}
 
       <!-- Werte -->
@@ -293,9 +313,13 @@ class BuderusHeatCard extends HTMLElement {
         : this._pill(870, 330, "flow", this._label("flow", "Vorlauf"), `${this._temp("flow")}${this._num("flow_target") !== null ? ` / ${Math.round(this._num("flow_target"))}°` : ""}`, { w: 150, color: this._color(this._num("flow")) })}
       ${this._pill(620, 615, "heating_pump_mod", this._label("heating_pump", "Heizkreispumpe"), heatPump ? `an · ${this._pct("heating_pump_mod")}` : "aus", { w: 140, active: heatPump, color: heatPump ? "#16a34a" : "var(--bhc-muted)" })}
       ${showHeater ? this._pill(352, 338, this._config.entities.heater ? "heater" : "heater_power", this._label("heater", "Heizstab"), heaterOn ? `an${this._power("heater_power") ? " · " + this._power("heater_power") : ""}` : "aus", { w: 128, active: heaterOn, color: heaterOn ? "#ea580c" : "var(--bhc-muted)" }) : ""}
+
+      ${circuitIdle2 ? this._pill(870, 505, "flow_2", this._label("circuit_2", "HK2 Fußbodenheizung"), "aus", { w: 170, color: "var(--bhc-muted)" })  : this._pill(870, 505, "flow_2", this._label("flow_2", "HK2 Vorlauf"), this._temp("flow_2"), { w: 170, color: this._color(this._num("flow_2")) })}
+      ${this._pill(870, 625, "return_2", this._label("return_2", "HK2 Rücklauf"), this._temp("return_2"), { w: 170, color: this._color(this._num("return_2")) })}
+      ${this._pill(620, 625, "heating_pump_2", this._label("heating_pump_2", "Pumpe HK2"), heatPump2 ? "an" : "aus", { w: 140, active: heatPump2, color: heatPump2 ? "#16a34a" : "var(--bhc-muted)" })}
+
     </svg>`;
   }
-
   _styles() {
     return `
       :host { display:block; }
