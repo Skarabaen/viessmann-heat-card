@@ -2,7 +2,7 @@
  * Buderus Heat Card – kombiniertes Anlagenschema (Kessel, Heizkreis, Speicher, Solarthermie)
  * Reine Anzeige-Karte: Antippen öffnet nur das More-Info-Fenster, es werden keine Dienste aufgerufen.
  */
-const BHC_VERSION = "0.3.1";
+const BHC_VERSION = "0.3.2";
 
 const BHC_DEFAULT_ENTITIES = {
   outside: "",
