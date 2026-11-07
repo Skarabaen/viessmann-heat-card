@@ -60,8 +60,10 @@ class BuderusHeatCard extends HTMLElement {
       animation: config.animation !== false,
       labels: config.labels || {},
       solar: config.solar,
+      tempScale: config.tempScale ?? 100,
       entities: { ...BHC_DEFAULT_ENTITIES, ...(config.entities || {}) },
     };
+
     this._lastKey = null;
     this._render();
   }
@@ -168,10 +170,11 @@ class BuderusHeatCard extends HTMLElement {
     if (!id) return "";
     const w = opts.w || 128;
     const color = opts.color || "var(--bhc-text)";
+    const fontSize = opts.fontSize || 16;
     return `<g class="click" data-entity="${bhcEsc(id)}" transform="translate(${x - w / 2},${y - 24})">
-      <rect width="${w}" height="48" rx="12" class="pill ${opts.active ? "pill-active" : ""}"/>
+      <rect width="${w}" height="${fontSize > 16 ? 56 : 48}" rx="12" class="pill ${opts.active ? "pill-active" : ""}"/>
       <text x="${w / 2}" y="18" class="pill-label">${bhcEsc(label)}</text>
-      <text x="${w / 2}" y="38" class="pill-value" style="fill:${color}">${bhcEsc(value)}</text>
+      <text x="${w / 2}" y="${fontSize > 16 ? 42 : 38}" class="pill-value" style="fill:${color};font-size:${fontSize}px">${bhcEsc(value)}</text>
     </g>`;
   }
 
@@ -204,6 +207,8 @@ class BuderusHeatCard extends HTMLElement {
     const top = this._num("tank_top");
     const bottom = this._num("tank_bottom");
     const boilerT = this._num("boiler_temp");
+    const tempFactor = (this._config.tempScale ?? 100) / 100;
+    const tempFont = 16 * tempFactor;
 
     const flame = burner
       ? `<g class="flame-anim"><path d="M145 405c0-22 14-38 30-50 18 12 28 30 28 49 0 22-14 36-29 36s-29-14-29-35z" fill="#f97316"/>
@@ -242,7 +247,7 @@ class BuderusHeatCard extends HTMLElement {
       ${this._pipe("M 150 480 V 510", true, heatPump2)}
       ${this._pipe("M 190 510 V 480", false, heatPump2)}
       <!-- Sonne + Kollektor -->
-      ${showSolar ? `<g transform="translate(905,40)" class="${solarActive ? "sun-on" : "sun"}">
+      ${showSolar ? `<g transform="translate(55,40)" class="${solarActive ? "sun-on" : "sun"}">
         <circle r="18" fill="#f59e0b"/>
         <g stroke="#f59e0b" stroke-width="4" stroke-linecap="round">
           <line y1="-28" y2="-40"/><line y1="28" y2="40"/><line x1="-28" x2="-40"/><line x1="28" x2="40"/>
@@ -303,23 +308,23 @@ class BuderusHeatCard extends HTMLElement {
       ${showSolar ? this._pump(700, 300, "solar_pump", solarActive, -90) : ""}
 
       <!-- Werte -->
-      ${this._pill(110, 70, "outside", this._label("outside", "Außen"), this._temp("outside"), { color: this._color(this._num("outside")) })}
+      ${this._pill(145, 70, "outside", this._label("outside", "Außen"), this._temp("outside"), { color: this._color(this._num("outside")), fontSize: tempFont,})}
       ${this._pill(255, 70, "mode", this._label("mode", "Heizkreis"), modeTxt || "–", { w: 120 })}
       ${this._pill(150, 530, "burner_power", this._label("burner", "Brenner"), burner ? `an · ${this._pct("burner_power") || ""}` : "aus", { active: burner, color: burner ? "#ea580c" : "var(--bhc-muted)" })}
       ${this._pill(330, 155, "charge_pump", this._label("charge", "WW-Ladung"), chargeActive ? "aktiv" : "aus", { active: chargeActive, color: chargeActive ? "#16a34a" : "var(--bhc-muted)" })}
-      ${this._pill(500, 62, "tank_top", this._label("tank_top", "Speicher oben"), this._temp("tank_top"), { w: 140, color: this._color(top) })}
-      ${this._pill(500, 300, "tank_middle", this._label("tank_middle", "Speicher Mitte"), this._temp("tank_middle"), { w: 140, color: this._color(this._num("tank_middle")) })}
-      ${this._pill(500, 507, "tank_bottom", this._label("tank_bottom", "Speicher unten"), this._temp("tank_bottom"), { w: 140, color: this._color(bottom) })}
-      ${showSolar ? this._pill(820, 215, "collector_from", this._label("collector_from", "Vom Kollektor"), this._temp("collector_from"), { w: 140, color: this._color(this._num("collector_from")) }) : ""}
-      ${showSolar ? this._pill(820, 270, "collector_to", this._label("collector_to", "Zum Kollektor"), this._temp("collector_to"), { w: 140, color: this._color(this._num("collector_to")) }) : ""}
-      ${showSolar ? this._pill(790, 268, "solar_pump_mod", this._label("solar_pump", "Solarpumpe"), solarActive ? `an · ${this._pct("solar_pump_mod")}` : "aus", { w: 120, active: solarActive, color: solarActive ? "#16a34a" : "var(--bhc-muted)" }) : ""}
-      ${this._pill(870, 330, "flow", this._label("flow", "HK1 Vorlauf"), this._temp("flow"), { w: 150, color: this._color(this._num("flow")) })}
+      ${this._pill(500, 62, "tank_top", this._label("tank_top", "Speicher oben"), this._temp("tank_top"), { w: 140, color: this._color(top),fontSize: tempFont, })}
+      ${this._pill(500, 300, "tank_middle", this._label("tank_middle", "Speicher Mitte"), this._temp("tank_middle"), { w: 140, color: this._color(this._num("tank_middle")),fontSize: tempFont, })}
+      ${this._pill(500, 507, "tank_bottom", this._label("tank_bottom", "Speicher unten"), this._temp("tank_bottom"), { w: 140, color: this._color(bottom),fontSize: tempFont, })}
+      ${showSolar ? this._pill(820, 55, "collector_from", this._label("collector_from", "Vom Kollektor"), this._temp("collector_from"), { w: 140, color: this._color(this._num("collector_from")), fontSize: tempFont, }) : ""}
+      ${showSolar ? this._pill(820, 215, "collector_to", this._label("collector_to", "Zum Kollektor"), this._temp("collector_to"), { w: 140, color: this._color(this._num("collector_to")), fontSize: tempFont, }) : ""}
+      ${showSolar ? this._pill(790, 300, "solar_pump_mod", this._label("solar_pump", "Solarpumpe"), solarActive ? `an · ${this._pct("solar_pump_mod")}` : "aus", { w: 120, active: solarActive, color: solarActive ? "#16a34a" : "var(--bhc-muted)" }) : ""}
+      ${this._pill(870, 330, "flow", this._label("flow", "HK1 Vorlauf"), this._temp("flow"), { w: 150, color: this._color(this._num("flow")), fontSize: tempFont, })}
       ${this._pill(620, 615, "heating_pump_mod", this._label("heating_pump", "Heizkreispumpe"), heatPump ? `an · ${this._pct("heating_pump_mod")}` : "aus", { w: 140, active: heatPump, color: heatPump ? "#16a34a" : "var(--bhc-muted)" })}
       ${showHeater ? this._pill(352, 338, this._config.entities.heater ? "heater" : "heater_power", this._label("heater", "Heizstab"), heaterOn ? `an${this._power("heater_power") ? " · " + this._power("heater_power") : ""}` : "aus", { w: 128, active: heaterOn, color: heaterOn ? "#ea580c" : "var(--bhc-muted)" }) : ""}
-      ${this._pill(870, 525, "return", this._label("return", "HK1 Rücklauf"), this._temp("return"), { w: 150, color: this._color(this._num("return")) })}
-      ${this._pill(105, 660, "flow_2", this._label("flow_2", "HK2 Vorlauf"), this._temp("flow_2"), { w: 170, color: this._color(this._num("flow_2")) })}
+      ${this._pill(870, 525, "return", this._label("return", "HK1 Rücklauf"), this._temp("return"), { w: 150, color: this._color(this._num("return")), fontSize: tempFont, })}
+      ${this._pill(105, 660, "flow_2", this._label("flow_2", "HK2 Vorlauf"), this._temp("flow_2"), { w: 170, color: this._color(this._num("flow_2")), fontSize: tempFont, })}
 
-      ${this._pill(285, 660, "return_2", this._label("return_2", "HK2 Rücklauf"), this._temp("return_2"), { w: 170, color: this._color(this._num("return_2")) })}
+      ${this._pill(285, 660, "return_2", this._label("return_2", "HK2 Rücklauf"), this._temp("return_2"), { w: 170, color: this._color(this._num("return_2")), fontSize: tempFont, })}
 
       ${this._pill(150, 555, "heating_pump_2", this._label("heating_pump_2", "Pumpe HK2"), heatPump2 ? "an" : "aus", { w: 140, active: heatPump2, color: heatPump2 ? "#16a34a" : "var(--bhc-muted)" })}
 
@@ -495,6 +500,10 @@ class BuderusHeatCardEditor extends HTMLElement {
           },
         },
         { name: "animation", selector: { boolean: {} } },
+        { name: "tempScale", selector: { number: { min: 50, max: 250, step: 5, mode: "box",
+      },
+  },
+},
       ],
     };
     const sections = BHC_EDITOR_SECTIONS.map((sec) => ({
@@ -520,6 +529,7 @@ class BuderusHeatCardEditor extends HTMLElement {
     if (item.name === "title") return de ? "Titel (leer = keine Kopfzeile)" : "Title (empty = no header)";
     if (item.name === "solar") return de ? "Solarthermie anzeigen" : "Show solar thermal";
     if (item.name === "animation") return de ? "Animierte Rohrströmung" : "Animated pipe flow";
+    if (item.name === "tempScale") { return de ? "Temperaturgröße (%)" : "Temperature size (%)"; }
     if (item.name.startsWith("label_")) {
       const entry = BHC_LABEL_KEYS.find(([key]) => `label_${key}` === item.name);
       return entry ? `${entry[0]} (${de ? "Standard" : "default"}: ${entry[1]})` : item.name;
@@ -538,6 +548,7 @@ class BuderusHeatCardEditor extends HTMLElement {
       title: c.title ?? "Heizungsanlage",
       animation: c.animation !== false,
       solar: c.solar === true ? "on" : c.solar === false ? "off" : "auto",
+      tempScale: c.tempScale ?? 100,
     };
     const ents = c.entities || {};
     for (const sec of BHC_EDITOR_SECTIONS) for (const [key] of sec.entities) if (ents[key]) data[key] = ents[key];
@@ -550,6 +561,7 @@ class BuderusHeatCardEditor extends HTMLElement {
   _toConfig(data) {
     const config = { ...this._config };
     config.title = data.title ?? "";
+    config.tempScale = Number(data.tempScale ?? 100);
     if (data.animation === false) config.animation = false;
     else delete config.animation;
     if (data.solar === "on") config.solar = true;
