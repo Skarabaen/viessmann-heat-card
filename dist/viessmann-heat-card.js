@@ -2,7 +2,7 @@
  * Buderus Heat Card – kombiniertes Anlagenschema (Kessel, Heizkreis, Speicher, Solarthermie)
  * Reine Anzeige-Karte: Antippen öffnet nur das More-Info-Fenster, es werden keine Dienste aufgerufen.
  */
-const BHC_VERSION = "0.3.0";
+const BHC_VERSION = "0.3.1";
 
 const BHC_DEFAULT_ENTITIES = {
   outside: "",
@@ -247,7 +247,7 @@ class BuderusHeatCard extends HTMLElement {
       ${this._pipe("M 150 480 V 510", true, heatPump2)}
       ${this._pipe("M 190 510 V 480", false, heatPump2)}
       <!-- Sonne + Kollektor -->
-      ${showSolar ? `<g transform="translate(55,40)" class="${solarActive ? "sun-on" : "sun"}">
+      ${showSolar ? `<g transform="translate(940,105)" class="${solarActive ? "sun-on" : "sun"}">
         <circle r="18" fill="#f59e0b"/>
         <g stroke="#f59e0b" stroke-width="4" stroke-linecap="round">
           <line y1="-28" y2="-40"/><line y1="28" y2="40"/><line x1="-28" x2="-40"/><line x1="28" x2="40"/>
@@ -315,10 +315,10 @@ class BuderusHeatCard extends HTMLElement {
       ${this._pill(500, 62, "tank_top", this._label("tank_top", "Speicher oben"), this._temp("tank_top"), { w: 140, color: this._color(top),fontSize: tempFont, })}
       ${this._pill(500, 300, "tank_middle", this._label("tank_middle", "Speicher Mitte"), this._temp("tank_middle"), { w: 140, color: this._color(this._num("tank_middle")),fontSize: tempFont, })}
       ${this._pill(500, 507, "tank_bottom", this._label("tank_bottom", "Speicher unten"), this._temp("tank_bottom"), { w: 140, color: this._color(bottom),fontSize: tempFont, })}
-      ${showSolar ? this._pill(820, 55, "collector_from", this._label("collector_from", "Vom Kollektor"), this._temp("collector_from"), { w: 140, color: this._color(this._num("collector_from")), fontSize: tempFont, }) : ""}
+      ${showSolar ? this._pill(820, 35, "collector_from", this._label("collector_from", "Vom Kollektor"), this._temp("collector_from"), { w: 140, color: this._color(this._num("collector_from")), fontSize: tempFont, }) : ""}
       ${showSolar ? this._pill(820, 215, "collector_to", this._label("collector_to", "Zum Kollektor"), this._temp("collector_to"), { w: 140, color: this._color(this._num("collector_to")), fontSize: tempFont, }) : ""}
       ${showSolar ? this._pill(790, 300, "solar_pump_mod", this._label("solar_pump", "Solarpumpe"), solarActive ? `an · ${this._pct("solar_pump_mod")}` : "aus", { w: 120, active: solarActive, color: solarActive ? "#16a34a" : "var(--bhc-muted)" }) : ""}
-      ${this._pill(870, 330, "flow", this._label("flow", "HK1 Vorlauf"), this._temp("flow"), { w: 150, color: this._color(this._num("flow")), fontSize: tempFont, })}
+      ${this._pill(870, 315, "flow", this._label("flow", "HK1 Vorlauf"), this._temp("flow"), { w: 150, color: this._color(this._num("flow")), fontSize: tempFont, })}
       ${this._pill(620, 615, "heating_pump_mod", this._label("heating_pump", "Heizkreispumpe"), heatPump ? `an · ${this._pct("heating_pump_mod")}` : "aus", { w: 140, active: heatPump, color: heatPump ? "#16a34a" : "var(--bhc-muted)" })}
       ${showHeater ? this._pill(352, 338, this._config.entities.heater ? "heater" : "heater_power", this._label("heater", "Heizstab"), heaterOn ? `an${this._power("heater_power") ? " · " + this._power("heater_power") : ""}` : "aus", { w: 128, active: heaterOn, color: heaterOn ? "#ea580c" : "var(--bhc-muted)" }) : ""}
       ${this._pill(870, 525, "return", this._label("return", "HK1 Rücklauf"), this._temp("return"), { w: 150, color: this._color(this._num("return")), fontSize: tempFont, })}
