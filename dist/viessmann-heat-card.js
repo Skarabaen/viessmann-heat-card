@@ -2,7 +2,7 @@
  * Buderus Heat Card – kombiniertes Anlagenschema (Kessel, Heizkreis, Speicher, Solarthermie)
  * Reine Anzeige-Karte: Antippen öffnet nur das More-Info-Fenster, es werden keine Dienste aufgerufen.
  */
-const BHC_VERSION = "0.3.2";
+const BHC_VERSION = "0.3.3";
 
 const BHC_DEFAULT_ENTITIES = {
   outside: "",
@@ -30,6 +30,9 @@ const BHC_DEFAULT_ENTITIES = {
   flow_2: "",
   return_2: "",
   heating_pump_2: "",
+  dhw_flow: "",
+  dhw_return: "",
+  dhw_pump: "",
 };
 
 const BHC_MODE_LABELS = { day: "Tag", night: "Nacht", nofrost: "Frostschutz", eco: "Eco", comfort: "Komfort" };
@@ -157,6 +160,19 @@ class BuderusHeatCard extends HTMLElement {
     </g>`;
   }
 
+  _faucetSvg(active) {
+    const e = this._config.entities;
+    const id = e.dhw_flow || e.dhw_return || e.dhw_pump;
+    const water = active ? "#ef4444" : "var(--bhc-off)";
+    const drip = active && this._config.animation ? " drip" : "";
+    return `<g class="${id ? "click" : ""}" ${id ? `data-entity="${bhcEsc(id)}"` : ""}>
+      <path d="M 362 28 V 17 M 351 17 H 373" fill="none" stroke="var(--bhc-stroke)" stroke-width="5" stroke-linecap="round"/>
+      <rect x="337" y="42" width="12" height="18" rx="4" fill="url(#bhcMetal)" stroke="var(--bhc-stroke)" stroke-width="3"/>
+      <rect x="337" y="28" width="42" height="16" rx="7" fill="url(#bhcMetal)" stroke="var(--bhc-stroke)" stroke-width="3"/>
+      <path class="water${drip}" d="M 343 64 C 343 64 337 71 337 74 a 6 6 0 0 0 12 0 C 349 71 343 64 343 64 z" fill="${water}"/>
+    </g>`;
+  }
+
   _stateKey() {
     if (!this._hass) return "nohass";
     return Object.values(this._config.entities)
@@ -196,6 +212,7 @@ class BuderusHeatCard extends HTMLElement {
     const burner = this._on("burner");
     const heatPump = this._on("heating_pump");
     const heatPump2 = this._on("heating_pump_2");
+    const dhwCirc = this._on("dhw_pump");
     const chargeActive = this._on("charge_pump") || this._on("dhw_charging");
     const showSolar = this._hasSolar();
     const solarActive = showSolar && this._on("solar_pump");
@@ -246,6 +263,9 @@ class BuderusHeatCard extends HTMLElement {
       <!-- 2026.11.04 Verbesserung: HK2 Fußbodenheizung -->
       ${this._pipe("M 150 480 V 510", true, heatPump2)}
       ${this._pipe("M 190 510 V 480", false, heatPump2)}
+      <!-- Warmwasser-Zirkulation: Speicher -> Zapfstelle (Vorlauf), Zapfstelle -> Speicher (Rücklauf) -->
+      ${this._pipe("M 432 140 H 418 V 36 H 376", true, dhwCirc)}
+      ${this._pipe("M 343 84 H 385 V 165 H 425", false, dhwCirc)}
       <!-- Sonne + Kollektor -->
       ${showSolar ? `<g transform="translate(940,105)" class="${solarActive ? "sun-on" : "sun"}">
         <circle r="18" fill="#f59e0b"/>
@@ -300,18 +320,21 @@ class BuderusHeatCard extends HTMLElement {
               stroke-width="8"
               stroke-linecap="round"
               stroke-linejoin="round"/>
-      </g>	
+      </g>
+      <!-- Wasserhahn -->
+      ${this._faucetSvg(dhwCirc)}
       <!-- Pumpen -->
       ${this._pump(330, 220, "charge_pump", chargeActive, 0)}
       ${this._pump(620, 540, "heating_pump", heatPump, 0)}
       ${this._pump(150, 495, "heating_pump_2", heatPump2, 90)}
+      ${this._pump(385, 124, "dhw_pump", dhwCirc, 90)}
       ${showSolar ? this._pump(700, 300, "solar_pump", solarActive, -90) : ""}
 
       <!-- Werte -->
-      ${this._pill(145, 70, "outside", this._label("outside", "Außen"), this._temp("outside"), { color: this._color(this._num("outside")), fontSize: tempFont,})}
-      ${this._pill(255, 70, "mode", this._label("mode", "Heizkreis"), modeTxt || "–", { w: 120 })}
+      ${this._pill(130, 125, "outside", this._label("outside", "Außen"), this._temp("outside"), { color: this._color(this._num("outside")), fontSize: tempFont,})}
+      ${this._pill(125, 60, "mode", this._label("mode", "Heizkreis"), modeTxt || "–", { w: 110 })}
       ${this._pill(150, 530, "burner_power", this._label("burner", "Brenner"), burner ? `an · ${this._pct("burner_power") || ""}` : "aus", { active: burner, color: burner ? "#ea580c" : "var(--bhc-muted)" })}
-      ${this._pill(330, 155, "charge_pump", this._label("charge", "WW-Ladung"), chargeActive ? "aktiv" : "aus", { active: chargeActive, color: chargeActive ? "#16a34a" : "var(--bhc-muted)" })}
+      ${this._pill(295, 155, "charge_pump", this._label("charge", "WW-Ladung"), chargeActive ? "aktiv" : "aus", { w: 120, active: chargeActive, color: chargeActive ? "#16a34a" : "var(--bhc-muted)" })}
       ${this._pill(500, 62, "tank_top", this._label("tank_top", "Speicher oben"), this._temp("tank_top"), { w: 140, color: this._color(top),fontSize: tempFont, })}
       ${this._pill(500, 300, "tank_middle", this._label("tank_middle", "Speicher Mitte"), this._temp("tank_middle"), { w: 140, color: this._color(this._num("tank_middle")),fontSize: tempFont, })}
       ${this._pill(500, 507, "tank_bottom", this._label("tank_bottom", "Speicher unten"), this._temp("tank_bottom"), { w: 140, color: this._color(bottom),fontSize: tempFont, })}
@@ -325,6 +348,9 @@ class BuderusHeatCard extends HTMLElement {
       ${this._pill(105, 660, "flow_2", this._label("flow_2", "HK2 Vorlauf"), this._temp("flow_2"), { w: 170, color: this._color(this._num("flow_2")), fontSize: tempFont, })}
 
       ${this._pill(285, 660, "return_2", this._label("return_2", "HK2 Rücklauf"), this._temp("return_2"), { w: 170, color: this._color(this._num("return_2")), fontSize: tempFont, })}
+
+      ${this._pill(262, 35, "dhw_flow", this._label("dhw_flow", "WW Vorlauf"), this._temp("dhw_flow"), { w: 116, color: this._color(this._num("dhw_flow")), fontSize: tempFont, })}
+      ${this._pill(262, 98, "dhw_return", this._label("dhw_return", "WW Rücklauf"), this._temp("dhw_return"), { w: 116, color: this._color(this._num("dhw_return")), fontSize: tempFont, })}
 
       ${this._pill(150, 555, "heating_pump_2", this._label("heating_pump_2", "Pumpe HK2"), heatPump2 ? "an" : "aus", { w: 140, active: heatPump2, color: heatPump2 ? "#16a34a" : "var(--bhc-muted)" })}
 
@@ -372,7 +398,9 @@ class BuderusHeatCard extends HTMLElement {
       .sun { opacity:.35; }
       .heater-on { filter:drop-shadow(0 0 6px rgba(249,115,22,.8)); animation:bhcGlow 1.6s ease-in-out infinite; }
       @keyframes bhcGlow { 0%,100% { opacity:1; } 50% { opacity:.75; } }
-      @media (prefers-reduced-motion: reduce) { .pipe.flow, .flame-anim, .heater-on { animation:none; } }
+      .drip { animation:bhcDrip 1.6s ease-in infinite; }
+      @keyframes bhcDrip { 0% { transform:translateY(-4px); opacity:0; } 25% { opacity:1; } 100% { transform:translateY(8px); opacity:0; } }
+      @media (prefers-reduced-motion: reduce) { .pipe.flow, .flame-anim, .heater-on, .drip { animation:none; } }
     `;
   }
 
@@ -438,6 +466,14 @@ const BHC_EDITOR_SECTIONS = [
     ],
   },
   {
+    id: "dhwcirc", icon: "mdi:faucet", de: "WW-Zirkulation & Zapfstelle", en: "DHW circulation & tap",
+    entities: [
+      ["dhw_flow", BHC_NUM_DOMAINS, "WW Vorlauf", "DHW flow temperature"],
+      ["dhw_return", BHC_NUM_DOMAINS, "WW Rücklauf", "DHW return temperature"],
+      ["dhw_pump", BHC_ONOFF_DOMAINS, "WW-Zirkulationspumpe (an/aus)", "DHW circulation pump (on/off)"],
+    ],
+  },
+  {
     id: "solar", icon: "mdi:solar-panel", de: "Solarthermie", en: "Solar thermal",
     entities: [
       ["collector", BHC_NUM_DOMAINS, "Kollektortemperatur", "Collector temperature"],
@@ -460,6 +496,7 @@ const BHC_LABEL_KEYS = [
   ["tank_top", "Speicher oben"], ["tank_bottom", "Speicher unten"], ["collector", "Kollektor"],
   ["solar_pump", "Solarpumpe"], ["flow", "Vorlauf"], ["circuit", "Heizkreis"],
   ["heating_pump", "Heizkreispumpe"], ["heater", "Heizstab"],
+  ["dhw_flow", "WW Vorlauf"], ["dhw_return", "WW Rücklauf"],
 ];
 
 class BuderusHeatCardEditor extends HTMLElement {
